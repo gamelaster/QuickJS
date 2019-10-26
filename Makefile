@@ -163,6 +163,8 @@ QJSBN_OBJS=$(OBJDIR)/qjs.bn.o $(OBJDIR)/repl-bn.bn.o $(OBJDIR)/qjscalc.bn.o $(QJ
 LIBS=-lm
 ifndef CONFIG_WIN32
 LIBS+=-ldl
+else
+LIBS+=-pthread
 endif
 
 $(OBJDIR):
