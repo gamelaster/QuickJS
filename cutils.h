@@ -31,11 +31,27 @@
 /* set if CPU is big endian */
 #undef WORDS_BIGENDIAN
 
+#if defined(_MSC_VER)
+#define likely(x) (x) // NOTE: Sadly, MSVC doesn't support this
+#define unlikely(x) (x)
+#define force_inline inline
+#define no_inline /* */
+#define __maybe_unused /* */
+#include <intrin.h>
+#pragma warning(disable:4996)
+#ifndef PATH_MAX
+#define PATH_MAX MAX_PATH
+#endif
+#include <BaseTsd.h>
+typedef SSIZE_T ssize_t;
+static const uint64_t EPOCH = ((uint64_t)116444736000000000ULL);
+#else
 #define likely(x)       __builtin_expect(!!(x), 1)
 #define unlikely(x)     __builtin_expect(!!(x), 0)
 #define force_inline inline __attribute__((always_inline))
 #define no_inline __attribute__((noinline))
 #define __maybe_unused __attribute__((unused))
+#endif
 
 #define xglue(x, y) x ## y
 #define glue(x, y) xglue(x, y)
@@ -114,25 +130,54 @@ static inline int64_t min_int64(int64_t a, int64_t b)
 /* WARNING: undefined if a = 0 */
 static inline int clz32(unsigned int a)
 {
+#if defined(_MSC_VER)
+    /* TODO: Current code requires SSE4 and BMI1, if you will have issues, use code lower
+     * unsigned long ret;
+     * _BitScanReverse(&ret, a);
+     * return (int)(31 ^ ret);
+     */
+    return (int)__lzcnt(a);
+#else
     return __builtin_clz(a);
+#endif
 }
 
 /* WARNING: undefined if a = 0 */
 static inline int clz64(uint64_t a)
 {
+#if defined(_MSC_VER)
+    /* unsigned long ret;
+     * _BitScanReverse64(&ret, a);
+     * return (int)(63 ^ ret);
+     */
+    return (int)__lzcnt64(a);
+#else
     return __builtin_clzll(a);
+#endif
 }
 
 /* WARNING: undefined if a = 0 */
 static inline int ctz32(unsigned int a)
 {
+#if defined(_MSC_VER)
+    unsigned long ret;
+    _BitScanForward(&ret, a);
+    return (int)ret;
+#else
     return __builtin_ctz(a);
+#endif
 }
 
 /* WARNING: undefined if a = 0 */
 static inline int ctz64(uint64_t a)
 {
+#if defined(_MSC_VER)
+    unsigned long ret;
+    _BitScanForward64(&ret, a);
+    return (int)ret;
+#else
     return __builtin_ctzll(a);
+#endif
 }
 
 #ifdef _MSC_VER

@@ -28,13 +28,13 @@
 #include <inttypes.h>
 #include <string.h>
 #include <assert.h>
-#include <unistd.h>
 #include <errno.h>
 #include <fcntl.h>
 #include <time.h>
 #if defined(__APPLE__)
 #include <malloc/malloc.h>
 #elif defined(__linux__)
+#include <unistd.h>
 #include <malloc.h>
 #endif
 
@@ -134,8 +134,12 @@ static inline size_t js_trace_malloc_usable_size(void *ptr)
 #endif
 }
 
+#if defined(_MSC_VER)
+static void js_trace_malloc_printf(JSMallocState* s, const char* fmt, ...)
+#else
 static void __attribute__((format(printf, 2, 3)))
     js_trace_malloc_printf(JSMallocState *s, const char *fmt, ...)
+#endif
 {
     va_list ap;
     int c;

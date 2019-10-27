@@ -27,10 +27,13 @@
 #include <inttypes.h>
 #include <string.h>
 #include <assert.h>
-#include <unistd.h>
 #include <errno.h>
 #if !defined(_WIN32)
 #include <sys/wait.h>
+#include <unistd.h>
+#else
+#pragma warning(disable:4996)
+#include "win32/utils/getopt.h"
 #endif
 
 #include "cutils.h"

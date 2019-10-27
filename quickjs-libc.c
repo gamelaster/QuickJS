@@ -37,12 +37,6 @@
 #if defined(_WIN32)
 #include <windows.h>
 #include <conio.h>
-#pragma warning(disable:4996)
-#ifndef PATH_MAX
-#define PATH_MAX MAX_PATH
-#endif
-#include <BaseTsd.h>
-typedef SSIZE_T ssize_t;
 #else
 #include <dlfcn.h>
 #include <termios.h>
@@ -602,7 +596,11 @@ static void js_std_file_finalizer(JSRuntime *rt, JSValue val)
     if (s) {
         if (s->f && s->close_in_finalizer) {
             if (s->is_popen)
+#if defined(_MSC_VER)
+                _pclose(s->f);
+#else
                 pclose(s->f);
+#endif
             else
                 fclose(s->f);
         }
@@ -718,7 +716,11 @@ static JSValue js_std_popen(JSContext *ctx, JSValueConst this_val,
         goto fail;
     }
 
+#if defined(_MSC_VER)
+    f = _popen(filename, mode);
+#else
     f = popen(filename, mode);
+#endif
     JS_FreeCString(ctx, filename);
     JS_FreeCString(ctx, mode);
     if (!f)
@@ -826,7 +828,11 @@ static JSValue js_std_file_close(JSContext *ctx, JSValueConst this_val,
         return js_std_throw_errno(ctx, EBADF);
     /* XXX: could return exit code */
     if (s->is_popen)
+#if defined(_MSC_VER)
+        _pclose(s->f);
+#else
         pclose(s->f);
+#endif
     else
         fclose(s->f);
     s->f = NULL;
@@ -915,6 +921,9 @@ static JSValue js_std_file_read_write(JSContext *ctx, JSValueConst this_val,
     size_t size, ret;
     uint8_t *buf;
     
+    printf("Tag: %d\n", JS_VALUE_GET_TAG(argv[0]));
+    printf("Tag: %d\n", JS_VALUE_GET_TAG(argv[1]));
+
     if (!f)
         return JS_EXCEPTION;
     if (JS_ToIndex(ctx, &pos, argv[1]))
@@ -1140,7 +1149,11 @@ static JSValue js_std_urlGet(JSContext *ctx, JSValueConst this_val,
         return JS_EXCEPTION;
     }
     //    printf("%s\n", (char *)cmd_buf.buf);
+#if defined(_MSC_VER)
+    f = _popen((char*)cmd_buf.buf, "r");
+#else
     f = popen((char *)cmd_buf.buf, "r");
+#endif
     dbuf_free(&cmd_buf);
     if (!f) {
         return js_std_throw_errno(ctx, errno);
@@ -1185,7 +1198,11 @@ static JSValue js_std_urlGet(JSContext *ctx, JSValueConst this_val,
     }
     js_free(ctx, buf);
     buf = NULL;
+#if defined(_MSC_VER)
+    _pclose(f);
+#else
     pclose(f);
+#endif
     f = NULL;
 
     if (dbuf_error(data_buf))
@@ -1222,7 +1239,11 @@ static JSValue js_std_urlGet(JSContext *ctx, JSValueConst this_val,
     return ret_obj;
  fail:
     if (f)
+#if defined(_MSC_VER)
+        _pclose(f);
+#else
         pclose(f);
+#endif
     js_free(ctx, buf);
     if (data_buf)
         dbuf_free(data_buf);
@@ -1715,9 +1736,21 @@ static int64_t get_time_ms(void)
 /* more portable, but does not work if the date is updated */
 static int64_t get_time_ms(void)
 {
+#if defined(_MSC_VER)
+    SYSTEMTIME system_time;
+    FILETIME file_time;
+    uint64_t time;
+
+    GetSystemTime(&system_time);
+    SystemTimeToFileTime(&system_time, &file_time);
+    time = ((uint64_t)file_time.dwLowDateTime);
+    time += ((uint64_t)file_time.dwHighDateTime) << 32;
+    time = ((time - EPOCH) / 10000L) + system_time.wMilliseconds;
+#else
     struct timeval tv;
     gettimeofday(&tv, NULL);
     return (int64_t)tv.tv_sec * 1000 + (tv.tv_usec / 1000);
+#endif
 }
 #endif
 
