@@ -28,7 +28,9 @@
 #include <inttypes.h>
 #include <string.h>
 #include <assert.h>
+#if !defined(_WIN32)
 #include <sys/time.h>
+#endif
 #include <time.h>
 #include <fenv.h>
 #include <math.h>
@@ -67,7 +69,7 @@
 
 /* define to include Atomics.* operations which depend on the OS
    threads */
-#if !defined(EMSCRIPTEN)
+#if !defined(EMSCRIPTEN) && !defined(_WIN32) // TODO: (win32) make atomics working 
 #define CONFIG_ATOMICS
 #endif
 
@@ -413,6 +415,8 @@ struct JSString {
         uint16_t str16[0];
     } u;
 };
+
+typedef uint32_t JSAtom;
 
 typedef struct JSClosureVar {
     uint8_t is_local : 1;

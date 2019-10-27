@@ -28,23 +28,29 @@
 #include <inttypes.h>
 #include <string.h>
 #include <assert.h>
-#include <unistd.h>
 #include <errno.h>
 #include <fcntl.h>
-#include <sys/time.h>
 #include <time.h>
 #include <signal.h>
 #include <limits.h>
 #include <sys/stat.h>
-#include <dirent.h>
 #if defined(_WIN32)
 #include <windows.h>
 #include <conio.h>
+#pragma warning(disable:4996)
+#ifndef PATH_MAX
+#define PATH_MAX MAX_PATH
+#endif
+#include <BaseTsd.h>
+typedef SSIZE_T ssize_t;
 #else
 #include <dlfcn.h>
 #include <termios.h>
 #include <sys/ioctl.h>
 #include <sys/wait.h>
+#include <dirent.h>
+#include <sys/time.h>
+#include <unistd.h>
 #if defined(__APPLE__)
 typedef sig_t sighandler_t;
 #endif

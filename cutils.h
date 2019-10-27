@@ -135,6 +135,20 @@ static inline int ctz64(uint64_t a)
     return __builtin_ctzll(a);
 }
 
+#ifdef _MSC_VER
+struct packed_u64 {
+    uint64_t v;
+};
+
+struct packed_u32 {
+    uint32_t v;
+};
+
+struct packed_u16 {
+    uint16_t v;
+};
+
+#else
 struct __attribute__((packed)) packed_u64 {
     uint64_t v;
 };
@@ -146,6 +160,7 @@ struct __attribute__((packed)) packed_u32 {
 struct __attribute__((packed)) packed_u16 {
     uint16_t v;
 };
+#endif
 
 static inline uint64_t get_u64(const uint8_t *tab)
 {
@@ -262,8 +277,13 @@ static inline int dbuf_put_u64(DynBuf *s, uint64_t val)
 {
     return dbuf_put(s, (uint8_t *)&val, 8);
 }
+
+#ifdef _MSC_VER
+int dbuf_printf(DynBuf* s, const char* fmt, ...);
+#else
 int __attribute__((format(printf, 2, 3))) dbuf_printf(DynBuf *s,
                                                       const char *fmt, ...);
+#endif
 void dbuf_free(DynBuf *s);
 static inline BOOL dbuf_error(DynBuf *s) {
     return s->error;
