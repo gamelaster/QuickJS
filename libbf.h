@@ -27,6 +27,7 @@
 #include <stddef.h>
 #include <stdint.h>
 
+// TODO: WIN64, but MSVC not have uint128_t 
 #if defined(__x86_64__)
 #define LIMB_LOG2_BITS 6
 #else
