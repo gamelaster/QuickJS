@@ -95,6 +95,9 @@ typedef struct JSRefCountHeader {
 
 #define JS_FLOAT64_NAN NAN
 
+// TODO: Solve this MSVC issue differently
+#define SAME_CAST(type) (type)
+
 #ifdef CONFIG_CHECK_JSVALUE
 /* JSValue consistency : it is not possible to run the code in this
    mode, but it is useful to detect simple reference counting
@@ -196,6 +199,8 @@ typedef struct JSValue {
 } JSValue;
 
 #define JSValueConst JSValue
+#undef SAME_CAST
+#define SAME_CAST(type)  
 
 #define JS_VALUE_GET_TAG(v) ((int32_t)(v).tag)
 /* same as JS_VALUE_GET_TAG, but return JS_TAG_FLOAT64 with NaN boxing */
@@ -587,7 +592,7 @@ static inline JSValue JS_DupValue(JSContext *ctx, JSValueConst v)
         JSRefCountHeader *p = (JSRefCountHeader *)JS_VALUE_GET_PTR(v);
         p->ref_count++;
     }
-    return (JSValue)v;
+    return SAME_CAST(JSValue)v;
 }
 
 static inline JSValue JS_DupValueRT(JSRuntime *rt, JSValueConst v)
@@ -596,7 +601,7 @@ static inline JSValue JS_DupValueRT(JSRuntime *rt, JSValueConst v)
         JSRefCountHeader *p = (JSRefCountHeader *)JS_VALUE_GET_PTR(v);
         p->ref_count++;
     }
-    return (JSValue)v;
+    return SAME_CAST(JSValue)v;
 }
 
 int JS_ToBool(JSContext *ctx, JSValueConst val); /* return -1 for JS_EXCEPTION */
