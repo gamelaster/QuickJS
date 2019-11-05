@@ -1,0 +1,1 @@
+- Change macros which needs only for MSVC, not WIN32 itself (when using GCC)

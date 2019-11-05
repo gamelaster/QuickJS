@@ -920,9 +920,6 @@ static JSValue js_std_file_read_write(JSContext *ctx, JSValueConst this_val,
     uint64_t pos, len;
     size_t size, ret;
     uint8_t *buf;
-    
-    printf("Tag: %d\n", JS_VALUE_GET_TAG(argv[0]));
-    printf("Tag: %d\n", JS_VALUE_GET_TAG(argv[1]));
 
     if (!f)
         return JS_EXCEPTION;
