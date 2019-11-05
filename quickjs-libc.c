@@ -1456,7 +1456,11 @@ static JSValue js_os_isatty(JSContext *ctx, JSValueConst this_val,
     int fd;
     if (JS_ToInt32(ctx, &fd, argv[0]))
         return JS_EXCEPTION;
+#if defined(_MSC_VER)
+    return JS_NewBool(ctx, _isatty(fd) != 0);
+#else
     return JS_NewBool(ctx, isatty(fd) == 1);
+#endif
 }
 
 #if defined(_WIN32)
